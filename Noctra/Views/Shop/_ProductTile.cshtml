@@ -1,0 +1,22 @@
+@model ProductDto
+@{
+    var labelTop = ViewData["LabelTop"] is true;
+    var accent = Model.Filters.GetValueOrDefault("color")?.Contains("RED") == true;
+    // Последнее слово названия выделяется красным у красных вещей, как «RED LEATHER JACKET» в макете
+    var words = Model.Name.Split(' ');
+    var head = accent && words.Length > 1 ? string.Join(' ', words[..^1]) : Model.Name;
+}
+<a class="tile" asp-controller="Shop" asp-action="Product" asp-route-id="@Model.Id">
+    @if (Model.ImageUrls.Count > 0)
+    {
+        <img src="@Model.ImageUrls[0]" alt="@Model.Name" loading="lazy" />
+    }
+    <span class="tile__label @(labelTop ? "tile__label--top" : "")">
+        @head
+        @if (accent && words.Length > 1) { <em>@words[^1]</em> }
+    </span>
+    @if (ViewData["ShowPrice"] is true)
+    {
+        <span class="tile__price">@Model.Price.ToString("0")$</span>
+    }
+</a>

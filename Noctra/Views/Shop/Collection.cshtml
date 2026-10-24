@@ -1,0 +1,61 @@
+@model CollectionViewModel
+@{
+    var c = Model.Collection;
+    var title = c.Slug == "tokyo" ? "TOKYO COLLECTION" : c.Name.Replace(" 2026", "");
+    ViewData["Title"] = title;
+    ViewData["Frame"] = "wide";
+    ViewData["Nav"] = "shop";
+    ViewData["PanelTitle"] = title;
+    var p = Model.Products;
+    var tileData = new ViewDataDictionary(ViewData) { ["LabelTop"] = false };
+    var bigData = new ViewDataDictionary(ViewData) { ["LabelTop"] = true };
+}
+
+@if (p.Count == 0)
+{
+    <div class="empty">THIS COLLECTION IS EMPTY FOR NOW</div>
+}
+else
+{
+    <div class="bento">
+        @for (var i = 0; i < 4; i++)
+        {
+            if (i < p.Count)
+            {
+                @await Html.PartialAsync("_ProductTile", p[i], i == 1 ? bigData : tileData)
+            }
+            else
+            {
+                <a class="tile" asp-action="Index"><span class="tile__label">MORE SOON</span></a>
+            }
+        }
+        <div class="bento__pair">
+            @for (var i = 4; i < 6; i++)
+            {
+                if (i < p.Count)
+                {
+                    @await Html.PartialAsync("_ProductTile", p[i], tileData)
+                }
+                else
+                {
+                    <a class="tile" asp-action="Index"><img src="~/img/collections/jewelry.jpg" alt="" loading="lazy" /><span class="tile__label" style="font-size: var(--fs-s)">ALL COLLECTIONS</span></a>
+                }
+            }
+        </div>
+        <partial name="_GlovesNote" />
+    </div>
+
+    @if (p.Count > 6)
+    {
+        <div class="grid-more">
+            @foreach (var item in p.Skip(6))
+            {
+                @await Html.PartialAsync("_ProductTile", item, tileData)
+            }
+        </div>
+    }
+}
+
+@section Bottom {
+    <span class="muted" style="font-size: var(--fs-m); max-width: 60ch">@c.Description</span>
+}

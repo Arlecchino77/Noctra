@@ -1,0 +1,63 @@
+@model CartDto
+@{
+    ViewData["Title"] = "Cart";
+    ViewData["Nav"] = "shop";
+    ViewData["PanelTitle"] = "YOUR CART";
+    var first = Model.Items.FirstOrDefault();
+}
+
+@* Слева — превью товара, на который наведена мышь в корзине (как в макете) *@
+<div class="cart-preview" data-cart-preview>
+    <div class="product__name"><span class="vtext" data-preview-name>@(first?.Name ?? "(NAME)")</span></div>
+    <a class="product__photo" data-preview-link href="@(first != null ? Url.Action("Product", "Shop", new { id = first.ProductId }) : "#")">
+        @if (first?.ImageUrl != null)
+        {
+            <img data-preview-img src="@first.ImageUrl" alt="" />
+        }
+        else
+        {
+            <span>(THE PRODUCT PAGE FOR THE ITEM OVER WHICH THE MOUSE WAS HOVERED IN THE CART)</span>
+        }
+    </a>
+    <div class="product__tags">
+        <span class="vtext"><span class="dot"></span><span data-preview-size>@(first != null ? $"SIZE {first.Size}" : "(TAGS)")</span><span class="dot"></span><span data-preview-price>@(first != null ? $"{first.Price:0}$" : "(TAGS)")</span><span class="dot"></span></span>
+    </div>
+</div>
+
+@section Panel {
+    <div class="cartlist" data-cartlist>
+        @foreach (var item in Model.Items)
+        {
+            <div class="citem" data-item="@item.Id" data-product-id="@item.ProductId" data-name="@item.Name"
+                 data-img="@item.ImageUrl" data-size="@item.Size" data-price="@item.Price.ToString("0")">
+                <a class="citem__photo" asp-controller="Shop" asp-action="Product" asp-route-id="@item.ProductId">
+                    @if (item.ImageUrl != null) { <img src="@item.ImageUrl" alt="@item.Name" loading="lazy" /> }
+                </a>
+                <div class="citem__name">@item.Name</div>
+                <div class="citem__size">
+                    @item.Size
+                    <span class="qty">
+                        <button type="button" data-qty="-1" aria-label="Decrease quantity">−</button>
+                        <span data-qty-value>@item.Quantity</span>
+                        <button type="button" data-qty="1" aria-label="Increase quantity">+</button>
+                    </span>
+                </div>
+                <div class="citem__price">
+                    <span data-item-total>@item.Total.ToString("0")$</span>
+                    <button type="button" class="citem__remove" data-remove aria-label="Remove">×</button>
+                </div>
+            </div>
+        }
+        @if (Model.Items.Count == 0)
+        {
+            <div class="empty">
+                <div>YOUR CART IS EMPTY<br /><a class="btn btn--small" style="margin-top:14px" asp-controller="Shop" asp-action="Index">GO SHOPPING</a></div>
+            </div>
+        }
+    </div>
+}
+
+@section Bottom {
+    <button class="btn btn--wide" type="button" data-order disabled="@(Model.Items.Count == 0)">ORDER</button>
+    <div class="total"><span>TOTAL PRICE</span><span data-cart-total>@Model.Total.ToString("0")$</span></div>
+}

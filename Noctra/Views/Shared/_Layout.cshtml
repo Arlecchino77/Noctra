@@ -1,0 +1,114 @@
+@inject CatalogService Catalog
+@inject CartService Cart
+@{
+    // Вариант раскладки: "" — обычный, "news" — фото на всю высоту, "wide" — контент на две колонки
+    var frame = ViewData["Frame"] as string ?? "";
+    var nav = ViewData["Nav"] as string ?? "shop";
+    var showShopHead = frame != "news" && ViewData["NoShopHead"] == null;
+    var panelTitle = ViewData["PanelTitle"] as string;
+    var activeCategory = ViewData["Category"] as string;
+    var userId = User.GetUserId();
+    var cartCount = userId.HasValue ? await Cart.CountAsync(userId.Value) : 0;
+    var categories = showShopHead ? await Catalog.GetCategoriesAsync() : new List<CategoryDto>();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@(ViewData["Title"] is string t ? $"{t} — NØCTRA" : "NØCTRA")</title>
+    <link rel="icon" href="~/img/logo_ic.png" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+<div class="frame @(frame != "" ? $"frame--{frame}" : "")">
+
+    <aside class="sidebar">
+        <div class="sidebar__inner">
+            <a class="sidebar__logo" asp-controller="News" asp-action="Index" aria-label="NØCTRA home">
+                <img class="icon" src="~/img/logo_ic.png" alt="" />
+                <img class="word" src="~/img/logo_text_crop.png" alt="NØCTRA" />
+            </a>
+            <p class="sidebar__tagline"><span>THE BEST DESIGNER CLOTHING FOR YOU</span></p>
+        </div>
+    </aside>
+
+    @if (showShopHead)
+    {
+        <header class="shophead">
+            <div class="shophead__top">
+                <form class="search" method="get" asp-controller="Shop" asp-action="Catalog" role="search">
+                    <img src="~/img/search_ic.svg" alt="" />
+                    <input type="search" name="search" placeholder="SEARCH ." aria-label="Search"
+                           value="@Context.Request.Query["search"]" autocomplete="off" />
+                </form>
+                <a class="cartlink" asp-controller="Cart" asp-action="Index">
+                    CART <img src="~/img/shoppingbag_ic.svg" alt="" /> <span data-cart-count>@cartCount.ToString("00")</span>
+                </a>
+            </div>
+            <nav class="cats" aria-label="Categories">
+                @foreach (var c in categories)
+                {
+                    <a asp-controller="Shop" asp-action="Catalog" asp-route-category="@c.Slug"
+                       class="@(c.Slug == activeCategory ? "is-active" : "")">@c.Name</a>
+                }
+            </nav>
+        </header>
+    }
+    else if (frame != "news")
+    {
+        <div class="shophead shophead--empty" aria-hidden="true"></div>
+    }
+
+    <div class="topnav">
+        <nav class="topnav__box" aria-label="Main">
+            <a asp-controller="News" asp-action="Index" class="@(nav == "news" ? "is-active" : "")">NEWS FEED</a>
+            <a asp-controller="Shop" asp-action="Index" class="@(nav == "shop" ? "is-active" : "")">SHOPPING</a>
+            <a asp-controller="Account" asp-action="Index" class="@(nav == "account" ? "is-active" : "")">ACCOUNT</a>
+        </nav>
+        @if (panelTitle != null)
+        {
+            <div class="topnav__title">@panelTitle</div>
+        }
+    </div>
+
+    <main class="main">
+        @RenderBody()
+    </main>
+
+    @if (IsSectionDefined("Panel"))
+    {
+        <section class="panel">@await RenderSectionAsync("Panel")</section>
+    }
+
+    @if (IsSectionDefined("Bottom"))
+    {
+        <div class="bottom">@await RenderSectionAsync("Bottom")</div>
+    }
+
+    <footer class="foot">
+        <div class="foot__brand">
+            <img src="~/img/logo_ic.png" alt="" />
+            <span>©NØCTRA A DESIGNER BRAND FOUNDED ON APRIL 1ST,<br />GAINING POPULARITY WORLDWIDE</span>
+        </div>
+        <div class="foot__row">
+            <div class="foot__links">
+                <a href="mailto:hello@noctra.example">CONTACT</a>
+                <a asp-controller="News" asp-action="Index">ABOUT</a>
+                <a href="mailto:ads@noctra.example">ADVERTISE</a>
+            </div>
+            <div class="foot__social">
+                <a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></a>
+                <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M14 8h3V4h-3c-2.8 0-4 1.7-4 4.3V10H7v4h3v10h4V14h3l1-4h-4V8.6c0-.4.3-.6 1-.6z"/></svg></a>
+                <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 3a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg></a>
+                <a href="#" aria-label="Twitter"><svg viewBox="0 0 24 24"><path d="M23 5a9 9 0 0 1-2.6.7A4.5 4.5 0 0 0 22.4 3a9 9 0 0 1-2.9 1.1A4.5 4.5 0 0 0 11.8 8 12.8 12.8 0 0 1 2.5 3.3a4.5 4.5 0 0 0 1.4 6 4.5 4.5 0 0 1-2-.6 4.5 4.5 0 0 0 3.6 4.5 4.5 4.5 0 0 1-2 .1 4.5 4.5 0 0 0 4.2 3.1A9 9 0 0 1 1 18.3 12.8 12.8 0 0 0 7.9 20.3c8.3 0 12.8-6.9 12.8-12.8v-.6A9 9 0 0 0 23 5z"/></svg></a>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<div class="toast" role="status" aria-live="polite" data-toast></div>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

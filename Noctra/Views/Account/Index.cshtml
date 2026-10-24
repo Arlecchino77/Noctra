@@ -1,0 +1,41 @@
+@model AccountViewModel
+@{
+    ViewData["Title"] = "Account";
+    ViewData["Nav"] = "account";
+    ViewData["NoShopHead"] = true;
+    ViewData["PanelTitle"] = "YOUR ACCOUNT";
+    var u = Model.User;
+}
+
+<div class="auth">
+    <div class="auth__photo"><img src="~/img/registration.jpg" alt="" /></div>
+    <div class="auth__form">
+        <img class="auth__logo" src="~/img/logo_text_crop.png" alt="NØCTRA" />
+        <h1 class="auth__title">HELLO, @u.Name</h1>
+        <div class="auth__row"><span class="auth__label">USERNAME</span><span>@u.Name</span></div>
+        <div class="auth__row"><span class="auth__label">E-MAIL</span><span>@u.Email</span></div>
+        <div class="auth__row"><span class="auth__label">PHONENUMBER</span><span>@u.Phone</span></div>
+        <div class="auth__row"><span class="auth__label">PASSWORD</span><span>••••••••</span></div>
+        <div class="auth__row"><span class="auth__label">MEMBER SINCE</span><span>@u.CreatedAt.ToLocalTime().ToString("dd/MM/yy")</span></div>
+        <div class="auth__actions">
+            <a class="btn auth__btn" asp-controller="Cart" asp-action="Index">CART · @Model.Cart.Count.ToString("00")</a>
+            <form method="post" asp-action="Logout" style="display:contents">
+                <button class="btn auth__btn" type="submit">LOGOUT</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Panel {
+    <div class="profile">
+        <div class="profile__row"><span>ITEMS IN CART</span><span>@Model.Cart.Count</span></div>
+        <div class="profile__row"><span>CART TOTAL</span><span>@Model.Cart.Total.ToString("0")$</span></div>
+        @foreach (var item in Model.Cart.Items.Take(4))
+        {
+            <a class="profile__row" asp-controller="Shop" asp-action="Product" asp-route-id="@item.ProductId">
+                <span>@item.Name · @item.Size</span><span>@item.Total.ToString("0")$</span>
+            </a>
+        }
+        <a class="btn btn--small" asp-controller="Shop" asp-action="Index">CONTINUE SHOPPING</a>
+    </div>
+}

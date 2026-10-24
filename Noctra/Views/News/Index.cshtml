@@ -1,0 +1,34 @@
+@model NewsIndexViewModel
+@{
+    ViewData["Title"] = "News feed";
+    ViewData["Frame"] = "news";
+    ViewData["Nav"] = "news";
+    var f = Model.Featured;
+}
+
+<div class="news-hero">
+    <a class="news-hero__photo" asp-action="Details" asp-route-id="@f.Id">
+        <img src="@f.ImageUrl" alt="@f.Subtitle @f.Title" />
+        <span class="news-hero__meta">
+            <span><small>TIMER</small>NEW SHOWING <time data-timer>00:00:00</time></span>
+            <span><small>DATE</small>@f.PublishedAt.ToString("dd/MM/yy")</span>
+        </span>
+        <span class="news-hero__mark news-hero__mark--a">@f.Tag</span>
+        <span class="news-hero__mark news-hero__mark--b">
+            <span>@f.Location</span><span>@f.PublishedAt.ToString("dd/MM/yy")</span>
+        </span>
+    </a>
+    <div class="news-hero__side"><span class="vtext">LATEST ARTICLES</span></div>
+</div>
+
+@section Panel {
+    <div class="news-panel">
+        <a class="readmore" asp-action="Details" asp-route-id="@f.Id">READ MORE</a>
+        <div class="articles">
+            @foreach (var a in Model.Articles.Take(5))
+            {
+                @await Html.PartialAsync("_ArticleCard", a, new ViewDataDictionary(ViewData) { ["Active"] = a.Id == f.Id })
+            }
+        </div>
+    </div>
+}

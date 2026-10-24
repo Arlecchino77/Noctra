@@ -1,0 +1,82 @@
+@model ProductViewModel
+@{
+    var p = Model.Product;
+    var collectionTitle = p.CollectionSlug == "tokyo" ? "TOKYO COLLECTION" : p.CollectionName?.Replace(" 2026", "");
+    ViewData["Title"] = p.Name;
+    ViewData["Nav"] = "shop";
+    ViewData["PanelTitle"] = collectionTitle ?? p.Category?.Name;
+    ViewData["Category"] = p.Category?.Slug;
+    var available = p.Filters.GetValueOrDefault("size") ?? new();
+    // Тег категории в единственном числе: COATS → COAT
+    var categoryTag = p.Category?.Name is { } cn && cn.EndsWith("S") && cn != "ACCESSORIES" ? cn[..^1] : p.Category?.Name;
+}
+
+<div class="product" data-product="@p.Id">
+    <div class="product__name"><h1 class="vtext" style="margin:0;font-weight:400">@p.Name</h1></div>
+    <div class="product__photo">
+        @if (p.ImageUrls.Count > 0)
+        {
+            <img src="@p.ImageUrls[0]" alt="@p.Name" />
+        }
+        @if (p.CollectionName != null)
+        {
+            <span class="tile__label tile__label--top">@p.CollectionName</span>
+        }
+    </div>
+    <div class="product__tags">
+        <span class="vtext">
+            <span class="dot"></span>
+            <a asp-action="Catalog" asp-route-category="@p.Category?.Slug">@categoryTag</a>
+            @if (collectionTitle != null)
+            {
+                <span class="dot"></span>
+                <a asp-action="Collection" asp-route-id="@p.CollectionSlug">@collectionTitle</a>
+            }
+        </span>
+    </div>
+</div>
+
+@section Panel {
+    <div class="specs">
+        <div class="spec">
+            <div class="spec__name">DESCRIPTION</div>
+            <div class="spec__text">@p.Description</div>
+        </div>
+        <div class="spec">
+            <div class="spec__name">MATERIAL</div>
+            <div class="spec__text">@p.Material</div>
+        </div>
+        <div class="spec">
+            <div class="spec__name">SIZE CHART</div>
+            <div class="sizes" role="radiogroup" aria-label="Size">
+                @foreach (var s in Model.AllSizes)
+                {
+                    var ok = available.Contains(s);
+                    <label class="size">
+                        <input type="radio" name="size" value="@s" disabled="@(!ok)" form="add-to-cart"
+                               checked="@(ok && available.Count == 1)" />
+                        <span>@s</span>
+                    </label>
+                }
+            </div>
+        </div>
+        <div class="spec spec--price">
+            <span class="spec__name">PRICE</span>
+            <strong>@p.Price.ToString("0")$</strong>
+        </div>
+    </div>
+}
+
+@section Bottom {
+    <form id="add-to-cart" data-add-to-cart="@p.Id" style="width:100%;display:flex;justify-content:center">
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <button class="btn btn--wide" type="submit">ADD TO CART</button>
+        }
+        else
+        {
+            <a class="btn btn--wide" asp-controller="Account" asp-action="Login"
+               asp-route-returnUrl="@Url.Action("Product", new { id = p.Id })">LOGIN TO BUY</a>
+        }
+    </form>
+}

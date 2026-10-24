@@ -1,0 +1,74 @@
+@model CatalogViewModel
+@{
+    ViewData["Title"] = Model.Title;
+    ViewData["Nav"] = "shop";
+    ViewData["PanelTitle"] = "FILTERS";
+    ViewData["Category"] = Model.Query.Category;
+    var q = Model.Query;
+    var tileData = new ViewDataDictionary(ViewData) { ["ShowPrice"] = true };
+
+    HashSet<string> Selected(string code) => new(CatalogService.Split(
+        code switch { "size" => q.Size, "color" => q.Color, "material" => q.Material, _ => null }));
+}
+
+<div class="catalog" data-catalog>
+    @foreach (var p in Model.Products)
+    {
+        @await Html.PartialAsync("_ProductTile", p, tileData)
+    }
+    @if (Model.Products.Count == 0)
+    {
+        <div class="empty" style="grid-column: 1 / -1">NOTHING FOUND</div>
+    }
+</div>
+
+@section Panel {
+    <form class="filters" method="get" asp-action="Catalog" data-filters>
+        <input type="hidden" name="category" value="@q.Category" />
+        <input type="hidden" name="search" value="@q.Search" />
+        <div class="catalog__count"><span data-count>@Model.Products.Count</span> ITEMS · @Model.Title</div>
+
+        @foreach (var f in Model.Filters)
+        {
+            var selected = Selected(f.Code);
+            <fieldset class="filters__group" style="border-left:0;border-right:0;border-top:0;margin:0;padding:0 0 12px">
+                <legend class="filters__name">@f.Name</legend>
+                <div class="chips">
+                    @foreach (var o in f.Options)
+                    {
+                        <label class="chip">
+                            <input type="checkbox" name="@f.Code" value="@o.Value" checked="@selected.Contains(o.Value)" />
+                            <span>@o.Value</span>
+                        </label>
+                    }
+                </div>
+            </fieldset>
+        }
+
+        <div class="filters__group">
+            <div class="filters__name">PRICE, $</div>
+            <div class="price-range">
+                <input class="field-input" type="number" name="minPrice" min="0" placeholder="FROM" value="@q.MinPrice" aria-label="Minimum price" />
+                <span>—</span>
+                <input class="field-input" type="number" name="maxPrice" min="0" placeholder="TO" value="@q.MaxPrice" aria-label="Maximum price" />
+            </div>
+        </div>
+
+        <div class="filters__group">
+            <div class="filters__name">SORT</div>
+            <select class="field-input" name="sort" aria-label="Sort">
+                <option value="" selected="@(string.IsNullOrEmpty(q.Sort))">NEW FIRST</option>
+                <option value="price_asc" selected="@(q.Sort == "price_asc")">PRICE: LOW TO HIGH</option>
+                <option value="price_desc" selected="@(q.Sort == "price_desc")">PRICE: HIGH TO LOW</option>
+                <option value="name" selected="@(q.Sort == "name")">NAME</option>
+            </select>
+        </div>
+
+        <noscript><button class="btn btn--small" type="submit">APPLY</button></noscript>
+        <a class="btn btn--small" asp-action="Catalog" asp-route-category="@q.Category">RESET FILTERS</a>
+    </form>
+}
+
+@section Bottom {
+    <a class="btn btn--small" asp-action="Index">← COLLECTIONS</a>
+}

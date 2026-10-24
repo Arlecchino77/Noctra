@@ -1,0 +1,48 @@
+@model ShopIndexViewModel
+@{
+    ViewData["Title"] = "Shopping";
+    ViewData["Frame"] = "wide";
+    ViewData["Nav"] = "shop";
+    CollectionDto? C(string slug) => Model.Collections.FirstOrDefault(c => c.Slug == slug);
+    var order = new[] { "autumn", "spring", "summer", "tokyo" };
+}
+
+<div class="bento">
+    @foreach (var slug in order)
+    {
+        var c = C(slug);
+        if (c == null) { <span class="tile"></span>; continue; }
+        <a class="tile" asp-action="Collection" asp-route-id="@c.Slug">
+            <img src="@c.CoverUrl" alt="@c.Name" />
+            <span class="tile__label @(slug == "spring" ? "tile__label--top" : "")">@c.Name</span>
+        </a>
+    }
+
+    <div class="bento__pair">
+        @if (C("jewelry") is { } jewelry)
+        {
+            <a class="tile" asp-action="Collection" asp-route-id="@jewelry.Slug">
+                <img src="@jewelry.CoverUrl" alt="@jewelry.Name" loading="lazy" />
+                <span class="tile__label" style="font-size: var(--fs-s)">@jewelry.Name</span>
+            </a>
+        }
+        @if (Model.Collaboration is { } collab)
+        {
+            <a class="collab" asp-controller="News" asp-action="Details" asp-route-id="@collab.Id">
+                <span class="collab__text">
+                    <span class="vtext">@collab.PublishedAt.ToString("dd/MM/yy")</span>
+                    <span class="who">
+                        <img src="@collab.ImageUrl" alt="" loading="lazy" />
+                        @collab.Title
+                    </span>
+                </span>
+            </a>
+        }
+    </div>
+
+    <partial name="_GlovesNote" />
+</div>
+
+@section Bottom {
+    <a class="btn btn--small" asp-action="Catalog">VIEW ALL ITEMS →</a>
+}

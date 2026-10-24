@@ -1,0 +1,35 @@
+@model NewsDetailsViewModel
+@{
+    var a = Model.Article;
+    ViewData["Title"] = a.Title;
+    ViewData["Frame"] = "news";
+    ViewData["Nav"] = "news";
+}
+
+<div class="news-hero">
+    <div class="news-hero__photo">
+        <img src="@a.ImageUrl" alt="@a.Subtitle @a.Title" />
+        <span class="news-hero__mark news-hero__mark--b">
+            <span>@a.Location</span><span>@a.PublishedAt.ToString("dd/MM/yy")</span>
+        </span>
+    </div>
+    <div class="news-hero__side"><span class="vtext">ARTICLE</span></div>
+</div>
+
+@section Panel {
+    <article class="article">
+        <a class="readmore" asp-action="Index">← BACK TO NEWS FEED</a>
+        <div class="article__sub">@a.Subtitle · @a.PublishedAt.ToString("dd.MM.yyyy")</div>
+        <h1 class="article__title">@a.Title</h1>
+        <p class="article__body">@a.Body</p>
+        <div class="article__more">
+            @foreach (var o in Model.Others.Take(3))
+            {
+                <a class="tile" asp-action="Details" asp-route-id="@o.Id">
+                    <img src="@o.ImageUrl" alt="" loading="lazy" />
+                    <span class="tile__label">@o.Title</span>
+                </a>
+            }
+        </div>
+    </article>
+}

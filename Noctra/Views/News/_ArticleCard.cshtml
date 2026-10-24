@@ -1,0 +1,12 @@
+@model ArticleDto
+@{
+    var active = ViewData["Active"] is true;
+}
+<a class="acard @(active ? "is-active" : "")" asp-controller="News" asp-action="Index" asp-route-id="@Model.Id"
+   aria-current="@(active ? "true" : null)">
+    <span class="acard__date vtext">@Model.PublishedAt.ToString("dd/MM/yy")</span>
+    <div class="acard__img"><img src="@Model.ImageUrl" alt="" loading="lazy" /></div>
+    <div class="acard__text">
+        <span class="vtext">@Model.Subtitle<b>@Model.Title</b></span>
+    </div>
+</a>
